@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { format } from 'date-fns'
 import { Calendar as CalendarIcon, ArrowLeft } from 'lucide-react'
 import StatCards from '@/components/dashboard/StatCards'
 import CalendarWidget from '@/components/dashboard/CalendarWidget'
@@ -17,6 +18,9 @@ export const metadata: Metadata = {
   description: 'Visão geral do dia — agendamentos, faturamento e lucro líquido.',
 }
 
+// Offset Brasil UTC-3: converte o horário UTC do servidor para o fuso local
+const BRT_OFFSET_MS = 3 * 60 * 60 * 1000
+
 export const dynamic = 'force-dynamic'
 
 interface DashboardPageProps {
@@ -27,19 +31,23 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const resolvedParams = searchParams ? await searchParams : {}
   const dateParam = resolvedParams?.data
 
-  // Data atual de referência
-  const today = new Date()
-  let targetDate = today
+  // "Hoje" no fuso do Brasil (UTC-3): evita que às 23h Brasil o servidor
+  // UTC já esteja no dia seguinte e mostre dados errados
+  const serverNow = new Date()
+  const brazilNow = new Date(serverNow.getTime() - BRT_OFFSET_MS)
+  const todayStr = format(brazilNow, 'yyyy-MM-dd')
+
+  let targetDateStr = todayStr
   let isCustomDate = false
 
   if (dateParam && typeof dateParam === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
-    const [y, m, d] = dateParam.split('-').map(Number)
-    targetDate = new Date(y, m - 1, d)
-    isCustomDate =
-      targetDate.getDate() !== today.getDate() ||
-      targetDate.getMonth() !== today.getMonth() ||
-      targetDate.getFullYear() !== today.getFullYear()
+    targetDateStr = dateParam
+    isCustomDate = targetDateStr !== todayStr
   }
+
+  // Converte a string de data para um objeto Date local (sem conversão de timezone)
+  const [ty, tm, td] = targetDateStr.split('-').map(Number)
+  const targetDate = new Date(ty, tm - 1, td)
 
   // Barbeiro autenticado ou fallback
   const user = await getCurrentUser()
@@ -52,7 +60,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const appointments = orgId ? await getAppointmentsForDate(targetDate, orgId) : []
   const financial =
-    barberId && orgId ? await getDailyFinancialSummary(barberId, orgId, targetDate) : null
+    barberId && orgId ? await getDailyFinancialSummary(barberId, orgId, targetDateStr) : null
 
   const formattedTargetDate = targetDate.toLocaleDateString('pt-BR', {
     weekday: 'long',
@@ -93,7 +101,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         {/* Left column */}
         <div className="space-y-4">
           <CalendarWidget
-            currentSelectedDate={targetDate}
+            selectedDateStr={targetDateStr}
+            todayStr={todayStr}
             dailyCount={appointments.length}
             organizationId={orgId}
           />

@@ -99,11 +99,13 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 /**
  * Calcula o resumo financeiro diário do barbeiro.
+ * Aceita a data como string 'YYYY-MM-DD' para evitar problemas de timezone
+ * (o servidor roda em UTC mas os usuários estão no Brasil UTC-3).
  */
 export async function getDailyFinancialSummary(
   userId: string,
   organizationId: string,
-  date: Date,
+  dateStr: string, // 'YYYY-MM-DD'
 ): Promise<DailyFinancialSummary> {
   const user = await db.user.findUnique({
     where: { id: userId },
@@ -115,8 +117,10 @@ export async function getDailyFinancialSummary(
   const commissionRate = decimalToNumber(user.commission_rate)
   const hasCommission = commissionRate > 0
 
-  const dayStart = startOfDay(date)
-  const dayEnd   = endOfDay(date)
+  // Usa Date.UTC para criar limites de dia consistentes, independente do fuso do servidor
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const dayStart = new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0))
+  const dayEnd   = new Date(Date.UTC(y, m - 1, d, 23, 59, 59, 999))
 
   const transactions = await db.transaction.findMany({
     where: {
@@ -142,7 +146,7 @@ export async function getDailyFinancialSummary(
   const netProfit = grossRevenue - salonCommission - operationalExpenses
 
   return {
-    date,
+    date: dayStart,
     grossRevenue:        parseFloat(grossRevenue.toFixed(2)),
     salonCommission:     parseFloat(salonCommission.toFixed(2)),
     operationalExpenses: parseFloat(operationalExpenses.toFixed(2)),
@@ -153,8 +157,10 @@ export async function getDailyFinancialSummary(
   }
 }
 
+
 /**
- * Busca o resumo financeiro de hoje do barbeiro principal
+ * Busca o resumo financeiro de hoje do barbeiro principal.
+ * Aplica o offset UTC-3 do Brasil para garantir o "hoje" correto.
  */
 export async function getTodayFinancialSummary(): Promise<DailyFinancialSummary> {
   let barber: any = null
@@ -173,7 +179,12 @@ export async function getTodayFinancialSummary(): Promise<DailyFinancialSummary>
     throw new Error('Organização ou usuário não encontrado')
   }
 
-  return getDailyFinancialSummary(barber.id, barber.organization_id, new Date())
+  // Aplica offset UTC-3 do Brasil para obter o "hoje" local correto
+  const BRT_OFFSET_MS = 3 * 60 * 60 * 1000
+  const brazilNow = new Date(new Date().getTime() - BRT_OFFSET_MS)
+  const todayStr = `${brazilNow.getUTCFullYear()}-${String(brazilNow.getUTCMonth() + 1).padStart(2, '0')}-${String(brazilNow.getUTCDate()).padStart(2, '0')}`
+
+  return getDailyFinancialSummary(barber.id, barber.organization_id, todayStr)
 }
 
 /**

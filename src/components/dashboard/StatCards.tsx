@@ -30,9 +30,13 @@ export default function StatCards({ initialFinancial, initialAppointments }: Sta
   const done = initialAppointments ? initialAppointments.filter(a => a.status === 'DONE').length : mockStats.done
   const inProgress = initialAppointments ? initialAppointments.filter(a => (a.status as string) === 'IN_PROGRESS' || a.status === 'CONFIRMED').length : mockStats.inProgress
   const remaining = initialAppointments ? initialAppointments.filter(a => a.status !== 'DONE' && a.status !== 'CANCELED').length : mockStats.remaining
-  const occupancyRate = totalAppointments > 0 ? Math.round((done / totalAppointments) * 100) : (mockStats.occupancyRate || 0)
+  // Quando há dados reais (initialAppointments definido), mostra 0% se não há agendamentos
+  // em vez de usar o valor mock de 58%
+  const occupancyRate = initialAppointments
+    ? (totalAppointments > 0 ? Math.round((done / totalAppointments) * 100) : 0)
+    : (mockStats.occupancyRate || 0)
 
-  const ticketAverage = done > 0 ? grossRevenue / done : 60
+  const ticketAverage = done > 0 ? grossRevenue / done : 0
   const goalAmount = 600
   const goalPercent = Math.round((grossRevenue / goalAmount) * 100)
 

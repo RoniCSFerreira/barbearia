@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { decimalToNumber } from '@/lib/utils'
 import { TransactionCategory, TransactionType } from '@prisma/client'
 import { startOfDay, endOfDay, format, parseISO } from 'date-fns'
+import { revalidatePath } from 'next/cache'
 
 export interface ExpenseItem {
   id: string
@@ -100,12 +101,15 @@ export async function createExpense(data: {
 
   const categoryEnum = CATEGORY_MAP[data.category] || TransactionCategory.OTHER
 
-  let createdAtDate = new Date()
+  // Usa UTC midnight da data fornecida para ficar consistente com as queries do dashboard
+  // que também usam Date.UTC para criar os limites de dia
+  let createdAtDate: Date
   if (data.date) {
-    const parsed = parseISO(data.date)
-    const now = new Date()
-    parsed.setHours(now.getHours(), now.getMinutes(), now.getSeconds())
-    createdAtDate = parsed
+    const [y, m, d] = data.date.split('-').map(Number)
+    // Meio-dia UTC do dia selecionado: garante que está dentro do intervalo dayStart-dayEnd
+    createdAtDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0))
+  } else {
+    createdAtDate = new Date()
   }
 
   const expense = await db.transaction.create({
@@ -119,6 +123,12 @@ export async function createExpense(data: {
       created_at: createdAtDate,
     },
   })
+
+  // Invalida o cache do dashboard para refletir o gasto imediatamente
+  try {
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/gastos')
+  } catch {}
 
   return {
     success: true,

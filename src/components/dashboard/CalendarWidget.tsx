@@ -20,21 +20,39 @@ function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month, 1).getDay()
 }
 
+/** Converte 'YYYY-MM-DD' em Date local sem conversão de timezone */
+function parseDateStr(str: string): Date {
+  const [y, m, d] = str.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
 interface CalendarWidgetProps {
-  currentSelectedDate?: Date
+  /** Data selecionada no formato 'YYYY-MM-DD' */
+  selectedDateStr: string
+  /** Hoje no fuso Brasil 'YYYY-MM-DD' */
+  todayStr: string
   dailyCount?: number
   organizationId?: string
 }
 
-export default function CalendarWidget({ currentSelectedDate, dailyCount = 0, organizationId }: CalendarWidgetProps) {
+export default function CalendarWidget({ selectedDateStr, todayStr, dailyCount = 0, organizationId }: CalendarWidgetProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const today = new Date()
-  const activeDate = currentSelectedDate || today
+  // Parseia as datas localmente (sem conversão de timezone)
+  const activeDate = parseDateStr(selectedDateStr)
+  const todayDate = parseDateStr(todayStr)
 
-  const [viewDate, setViewDate] = useState(() => new Date(activeDate.getFullYear(), activeDate.getMonth(), 1))
+  const [viewDate, setViewDate] = useState(() =>
+    new Date(activeDate.getFullYear(), activeDate.getMonth(), 1)
+  )
   const [appointmentDays, setAppointmentDays] = useState<Set<number>>(new Set())
+
+  // Sincroniza o mês visualizado quando a data selecionada muda para outro mês
+  useEffect(() => {
+    const d = parseDateStr(selectedDateStr)
+    setViewDate(new Date(d.getFullYear(), d.getMonth(), 1))
+  }, [selectedDateStr])
 
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()
@@ -67,7 +85,7 @@ export default function CalendarWidget({ currentSelectedDate, dailyCount = 0, or
   }
 
   const goToday = () => {
-    setViewDate(new Date(today.getFullYear(), today.getMonth(), 1))
+    setViewDate(new Date(todayDate.getFullYear(), todayDate.getMonth(), 1))
     const params = new URLSearchParams(searchParams.toString())
     params.delete('data')
     router.push(`/dashboard${params.toString() ? `?${params.toString()}` : ''}`)
@@ -88,7 +106,7 @@ export default function CalendarWidget({ currentSelectedDate, dailyCount = 0, or
   }
 
   const isToday = (day: number, isCurrent: boolean) =>
-    isCurrent && day === today.getDate() && month === today.getMonth() && year === today.getFullYear()
+    isCurrent && day === todayDate.getDate() && month === todayDate.getMonth() && year === todayDate.getFullYear()
 
   const isSelected = (day: number, isCurrent: boolean) =>
     isCurrent &&
