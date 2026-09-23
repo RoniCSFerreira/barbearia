@@ -69,14 +69,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(expiredUrl)
   }
 
-  // 4. Se estiver logado e ativo, não deixar acessar /login ou /cadastro
+  // 4. Se estiver logado e com trial ativo, não deixar acessar /login ou /cadastro
   if (isAuthRoute && session) {
-    if (isTrialExpired) {
-      const expiredUrl = new URL('/trial-expirado', request.url)
-      return NextResponse.redirect(expiredUrl)
+    if (!isTrialExpired) {
+      const dashboardUrl = new URL('/dashboard', request.url)
+      return NextResponse.redirect(dashboardUrl)
     }
-    const dashboardUrl = new URL('/dashboard', request.url)
-    return NextResponse.redirect(dashboardUrl)
+    // Se o trial estiver expirado, permite acessar /login para poder entrar com outra conta ou admin
   }
 
   // 5. Se acessar /trial-expirado mas não tem sessão

@@ -1,9 +1,12 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('Iniciando seed do banco de dados...')
+
+  const hashedPassword = await bcrypt.hash('123456', 10)
 
   // 1. Criar Organização (Barbearia)
   const org = await prisma.organization.upsert({
@@ -26,7 +29,9 @@ async function main() {
     update: {
       name: 'Roni Cleiton Souza Ferreira',
       phone: '11976543210',
+      password_hash: hashedPassword,
       role: 'OWNER',
+      status: 'ACTIVE',
       organization_id: org.id,
     },
     create: {
@@ -34,12 +39,39 @@ async function main() {
       organization_id: org.id,
       name: 'Roni Cleiton Souza Ferreira',
       email: 'carlos@navalha.com',
+      password_hash: hashedPassword,
       phone: '11976543210',
       role: 'OWNER',
+      status: 'ACTIVE',
       commission_rate: 0,
     },
   })
   console.log(`✓ Barbeiro criado/atualizado: ${user.name}`)
+
+  // 2.1 Criar Usuário Administrador (Super Admin)
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'rcsfempresa@gmail.com' },
+    update: {
+      name: 'Administrador',
+      phone: '11999999999',
+      password_hash: hashedPassword,
+      role: 'ADMIN',
+      status: 'ACTIVE',
+      organization_id: org.id,
+    },
+    create: {
+      id: 'admin-1',
+      organization_id: org.id,
+      name: 'Administrador',
+      email: 'rcsfempresa@gmail.com',
+      password_hash: hashedPassword,
+      phone: '11999999999',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+      commission_rate: 0,
+    },
+  })
+  console.log(`✓ Administrador criado/atualizado: ${adminUser.email}`)
 
   // 3. Criar Serviços
   const services = [

@@ -118,8 +118,8 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
         const stored = localStorage.getItem('barbearia_profile')
         if (stored && user?.email) {
           const parsed = JSON.parse(stored)
-          // Se o e-mail no localStorage pertencer a outra conta (ex: admin), limpa e usa o dado real do banco
-          if (parsed.email && parsed.email.toLowerCase() !== user.email.toLowerCase()) {
+          // Se o e-mail do localStorage não existir ou for diferente do e-mail logado, limpa o localStorage
+          if (!parsed.email || parsed.email.toLowerCase() !== user.email.toLowerCase()) {
             localStorage.removeItem('barbearia_profile')
             if (user) {
               setHeaderData({
