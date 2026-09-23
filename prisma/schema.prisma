@@ -1,0 +1,157 @@
+// Prisma Schema - Barbearia MVP
+// PostgreSQL via Supabase ou Neon
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // directUrl é necessário para migrações quando usando connection pooler (Supabase/Neon)
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  OWNER
+  BARBER
+}
+
+enum UserStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  DONE
+  CANCELED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionCategory {
+  SERVICE
+  SUPPLIES
+  RENT
+  EQUIPMENT
+  OTHER
+}
+
+// ─────────────────────────────────────────────
+// MODELS
+// ─────────────────────────────────────────────
+
+/// Representa uma barbearia ou negócio autônomo
+model Organization {
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  /// Taxa de repasse da cadeira em percentual (ex: 40.00 = 40%)
+  commission_rate Decimal  @default(40.00) @db.Decimal(5, 2)
+  created_at      DateTime @default(now())
+
+  users        User[]
+  services     Service[]
+  appointments Appointment[]
+  transactions Transaction[]
+
+  @@map("organizations")
+}
+
+/// Representa um barbeiro autônomo ou funcionário de barbearia
+model User {
+  id              String   @id @default(uuid())
+  organization_id String
+  name            String
+  email           String   @unique
+  phone           String?
+  password_hash   String?
+  role            Role       @default(BARBER)
+  status          UserStatus @default(TRIAL)
+  trial_ends_at   DateTime?
+  /// Percentual de repasse ao salão. 0 = sem repasse.
+  /// Valores permitidos: 0, 10, 20, 30, 40, 50
+  commission_rate Decimal    @default(0) @db.Decimal(5, 2)
+  created_at      DateTime   @default(now())
+
+  organization Organization  @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+  transactions Transaction[]
+
+  @@index([organization_id])
+  @@map("users")
+}
+
+/// Serviços oferecidos pela barbearia (corte, barba, etc.)
+model Service {
+  id               String   @id @default(uuid())
+  organization_id  String
+  name             String
+  price            Decimal  @db.Decimal(10, 2)
+  duration_minutes Int
+  created_at       DateTime @default(now())
+
+  organization Organization  @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@index([organization_id])
+  @@map("services")
+}
+
+/// Agendamento de um cliente com um barbeiro
+model Appointment {
+  id              String            @id @default(uuid())
+  organization_id String
+  user_id         String
+  client_name     String
+  client_phone    String?
+  service_id      String
+  start_time      DateTime
+  end_time        DateTime
+  status          AppointmentStatus @default(PENDING)
+  created_at      DateTime          @default(now())
+
+  organization Organization  @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  service      Service       @relation(fields: [service_id], references: [id], onDelete: Restrict)
+  transactions Transaction[]
+
+  @@index([organization_id])
+  @@index([user_id])
+  @@index([start_time])
+  @@map("appointments")
+}
+
+/// Registro financeiro: receitas e despesas
+model Transaction {
+  id              String              @id @default(uuid())
+  organization_id String
+  user_id         String
+  /// Pode ser nulo para despesas não associadas a um agendamento
+  appointment_id  String?
+  type            TransactionType
+  category        TransactionCategory
+  amount          Decimal             @db.Decimal(10, 2)
+  description     String?
+  created_at      DateTime            @default(now())
+
+  organization Organization  @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  appointment  Appointment?  @relation(fields: [appointment_id], references: [id], onDelete: SetNull)
+
+  @@index([organization_id])
+  @@index([user_id])
+  @@index([created_at])
+  @@map("transactions")
+}

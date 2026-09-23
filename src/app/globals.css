@@ -1,0 +1,168 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────
+   CSS Custom Properties — Design Tokens
+   ───────────────────────────────────────────── */
+:root {
+  --font-inter: 'Inter', system-ui, sans-serif;
+
+  /* Dark Theme Tokens (Default) */
+  --bg-background: #08090C;
+  --bg-surface: #111319;
+  --bg-surface-2: #171923;
+  --bg-surface-3: #202434;
+
+  --color-border: #1E2230;
+  --color-border-accent: rgba(91, 99, 246, 0.35);
+
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+
+  --gradient-surface: linear-gradient(180deg, #13151D 0%, #08090C 100%);
+  --gradient-card: linear-gradient(145deg, #13151D 0%, #0F1117 100%);
+}
+
+[data-theme='light'],
+html.light {
+  /* Light Theme Tokens */
+  --bg-background: #F1F5F9;
+  --bg-surface: #FFFFFF;
+  --bg-surface-2: #F8FAFC;
+  --bg-surface-3: #E2E8F0;
+
+  --color-border: #E2E8F0;
+  --color-border-accent: rgba(91, 99, 246, 0.4);
+
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748B;
+
+  --gradient-surface: linear-gradient(180deg, #FFFFFF 0%, #F1F5F9 100%);
+  --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%);
+}
+
+/* ─────────────────────────────────────────────
+   Base Styles
+   ───────────────────────────────────────────── */
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--bg-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-inter);
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Scrollbar personalizada (webkit) */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: theme('colors.background');
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: theme('colors.surface.3');
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.text.muted');
+  }
+
+  /* Seleção de texto */
+  ::selection {
+    background-color: theme('colors.accent.DEFAULT');
+    color: theme('colors.accent.foreground');
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Component Utilities
+   ───────────────────────────────────────────── */
+@layer components {
+  /* Card base (Flat com borda limpa) */
+  .card {
+    @apply bg-surface rounded-xl border border-border;
+  }
+
+  /* Card com gradiente sutil */
+  .card-gradient {
+    @apply bg-gradient-card rounded-xl border border-border;
+  }
+
+  /* Botão primário (Electric Indigo flat) */
+  .btn-primary {
+    @apply bg-accent text-accent-foreground font-semibold px-4 py-2 rounded-lg
+           transition-all duration-200 hover:bg-accent-hover
+           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Botão secundário (surface) */
+  .btn-secondary {
+    @apply bg-surface-2 text-text-primary font-medium px-4 py-2 rounded-lg border border-border
+           transition-all duration-200 hover:bg-surface-3 hover:border-accent/40
+           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Botão ghost */
+  .btn-ghost {
+    @apply text-text-secondary font-medium px-4 py-2 rounded-lg
+           transition-all duration-200 hover:bg-surface-2 hover:text-text-primary
+           active:scale-95;
+  }
+
+  /* Badge de status */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-2xs font-semibold border;
+  }
+
+  .badge-success {
+    @apply badge bg-success-muted text-success border-success/20;
+  }
+
+  .badge-warning {
+    @apply badge bg-warning-muted text-warning border-warning/20;
+  }
+
+  .badge-danger {
+    @apply badge bg-danger-muted text-danger border-danger/20;
+  }
+
+  .badge-accent {
+    @apply badge bg-accent-muted text-accent border-accent/20;
+  }
+
+  .badge-cyan {
+    @apply badge bg-cyan-muted text-cyan border-cyan/20;
+  }
+
+  /* Input */
+  .input {
+    @apply w-full bg-surface-2 border border-border rounded-lg px-3 py-2
+           text-text-primary placeholder:text-text-muted
+           focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent
+           transition-colors duration-200;
+  }
+
+  /* Stat card (dashboard) */
+  .stat-card {
+    @apply card p-5 flex flex-col gap-1.5 hover:border-border-accent transition-all duration-300;
+  }
+}
