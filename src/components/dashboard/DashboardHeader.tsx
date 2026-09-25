@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { mockOrganization, mockUser } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
-import NewAppointmentModal from '@/components/dashboard/NewAppointmentModal'
+
 import ThemeToggle from '@/components/ThemeToggle'
 
 const NAV_LINKS = [
@@ -222,8 +222,6 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
                 <span className="hidden sm:inline">Painel Admin</span>
               </Link>
             )}
-
-            <NewAppointmentModal buttonText="Novo Agendamento" />
 
             <ThemeToggle />
 
