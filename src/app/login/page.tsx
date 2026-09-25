@@ -81,6 +81,14 @@ export default function LoginPage() {
                   <Lock className="w-3.5 h-3.5 text-accent" />
                   Senha
                 </label>
+                <a 
+                  href="https://wa.me/5519982626830?text=Ol%C3%A1%2C%20esqueci%20minha%20senha%20de%20acesso%20ao%20sistema.%20Poderia%20me%20ajudar%3F" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-xs font-semibold text-accent hover:text-accent-hover hover:underline transition-colors"
+                >
+                  Esqueceu?
+                </a>
               </div>
               <div className="relative">
                 <input

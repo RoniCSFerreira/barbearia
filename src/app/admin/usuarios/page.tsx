@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   ShieldCheck, Search, Users, CheckCircle2, Clock,
   AlertTriangle, MessageCircle, Plus, RefreshCw, Trash2,
-  Lock, ArrowLeft, Loader2, Sparkles
+  Lock, ArrowLeft, Loader2, Sparkles, Key
 } from 'lucide-react'
 import { formatCurrency, cn } from '@/lib/utils'
 import {
@@ -14,6 +14,7 @@ import {
   extendUserTrialAction,
   suspendUserAction,
   deleteUserAccountAction,
+  resetUserPasswordAction,
   type BarberAdminItem
 } from '@/app/actions/admin'
 
@@ -96,6 +97,24 @@ export default function AdminUsuariosPage() {
       await loadData()
     } catch (err: any) {
       setNotice(err?.message || 'Erro ao excluir conta.')
+    } finally {
+      setActionLoading(null)
+      setTimeout(() => setNotice(null), 5000)
+    }
+  }
+
+  const handleResetPassword = async (userId: string, name: string) => {
+    if (!confirm(`Gerar nova senha temporária para ${name}?`)) return
+    setActionLoading(userId)
+    try {
+      const res = await resetUserPasswordAction(userId)
+      if (res?.success) {
+        // Usa o alert nativo para ficar pausado na tela e o admin conseguir copiar a senha
+        alert(`SUCESSO!\n\nA nova senha de ${name} é: ${res.newPassword}\n\nCopie essa senha e envie para ele no WhatsApp.`)
+        setNotice(`Senha de ${name} resetada com sucesso.`)
+      }
+    } catch (err: any) {
+      setNotice(err?.message || 'Erro ao resetar senha.')
     } finally {
       setActionLoading(null)
       setTimeout(() => setNotice(null), 5000)
@@ -438,6 +457,16 @@ export default function AdminUsuariosPage() {
                           <Lock className="w-3.5 h-3.5" />
                         </button>
                       )}
+
+                      {/* Reset Password */}
+                      <button
+                        onClick={() => handleResetPassword(b.id, b.name)}
+                        disabled={isCurrentLoading}
+                        className="p-2 rounded-lg bg-surface-3 hover:bg-accent/20 text-text-muted hover:text-accent border border-border transition-colors"
+                        title="Gerar Nova Senha"
+                      >
+                        <Key className="w-3.5 h-3.5" />
+                      </button>
 
                       {/* Excluir */}
                       <button

@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
 import { UserStatus } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
+import bcrypt from 'bcryptjs'
 
 export interface BarberAdminItem {
   id: string
@@ -175,4 +176,28 @@ export async function deleteUserAccountAction(userId: string) {
 
   revalidatePath('/admin/usuarios')
   return { success: true }
+}
+
+/**
+ * Reseta a senha do usuário e gera uma nova senha aleatória de 6 dígitos
+ */
+export async function resetUserPasswordAction(userId: string) {
+  await verifyAdminAuth()
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+  })
+
+  if (!user) throw new Error('Barbeiro não encontrado')
+
+  // Gera senha de 6 números
+  const newPassword = Math.floor(100000 + Math.random() * 900000).toString()
+  const password_hash = await bcrypt.hash(newPassword, 10)
+
+  await db.user.update({
+    where: { id: userId },
+    data: { password_hash },
+  })
+
+  return { success: true, newPassword }
 }
