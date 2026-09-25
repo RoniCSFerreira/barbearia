@@ -139,9 +139,9 @@ export default function NewAppointmentModal({
 
       {/* Modal Dialog */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
           <div
-            className="w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl p-5 space-y-4 relative"
+            className="w-full sm:max-w-md max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto bg-surface border border-border sm:rounded-2xl rounded-t-2xl shadow-2xl p-5 space-y-4 relative"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
