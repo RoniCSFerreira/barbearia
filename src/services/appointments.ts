@@ -210,8 +210,10 @@ export async function completeAppointment(appointmentId: string) {
   }
 
   // Validação: Não permite concluir agendamentos de datas futuras
-  const todayStart = startOfDay(new Date())
-  const apptDayStart = startOfDay(appt.start_time)
+  // Usa o horário de Brasília (UTC-3) para evitar bug de fuso horário na Vercel (que roda em UTC)
+  const nowBrasilia = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }))
+  const todayStart = startOfDay(nowBrasilia)
+  const apptDayStart = startOfDay(new Date(appt.start_time.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' })))
   if (isAfter(apptDayStart, todayStart)) {
     throw new Error('Não é permitido concluir agendamentos de datas futuras. O atendimento só pode ser concluído no dia do agendamento (ou em datas passadas).')
   }
