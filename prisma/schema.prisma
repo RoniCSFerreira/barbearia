@@ -80,6 +80,12 @@ model User {
   role            Role       @default(BARBER)
   status          UserStatus @default(TRIAL)
   trial_ends_at   DateTime?
+  
+  /// Integração de Assinatura (Cakto/Kiwify)
+  subscription_id        String?
+  subscription_provider  String?
+  subscription_ends_at   DateTime?
+
   /// Percentual de repasse ao salão. 0 = sem repasse.
   /// Valores permitidos: 0, 10, 20, 30, 40, 50
   commission_rate Decimal    @default(0) @db.Decimal(5, 2)
