@@ -15,13 +15,8 @@ import { logoutBarberAction } from '@/app/actions/auth'
 export default async function TrialExpiradoPage() {
   const user = await getCurrentUser()
 
-  // Número do WhatsApp do Administrador (configurável no .env ou fallback)
-  const adminWhatsApp = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '5519996214343'
-  const barberName = user?.name ? ` (Barbeiro: ${user.name})` : ''
-  const message = encodeURIComponent(
-    `Olá! Meu período de teste de 3 dias no sistema de barbearia terminou${barberName} e gostaria de assinar o plano para liberar meu acesso.`
-  )
-  const whatsappUrl = `https://wa.me/${adminWhatsApp.replace(/\D/g, '')}?text=${message}`
+  // URL de Checkout da Cakto (configure no seu .env)
+  const checkoutUrl = process.env.NEXT_PUBLIC_CAKTO_CHECKOUT_URL || '#'
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 selection:bg-accent selection:text-white">
@@ -79,16 +74,16 @@ export default async function TrialExpiradoPage() {
           </div>
         </div>
 
-        {/* Ação Principal: WhatsApp */}
+        {/* Ação Principal: Checkout */}
         <div className="space-y-3">
           <a
-            href={whatsappUrl}
+            href={checkoutUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-emerald-950/40 transition-all duration-200 active:scale-98"
+            className="w-full py-3.5 px-6 rounded-xl bg-accent hover:bg-accent/90 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-lg shadow-accent/40 transition-all duration-200 active:scale-98"
           >
-            <MessageCircle className="w-5 h-5 fill-current" />
-            Liberar Meu Acesso no WhatsApp
+            <DollarSign className="w-5 h-5" />
+            Assinar Plano Agora
           </a>
 
           {/* Sair da Conta */}

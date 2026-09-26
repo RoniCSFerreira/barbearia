@@ -10,6 +10,8 @@ import {
   EyeOff,
   ArrowRight,
   Sparkles,
+  DollarSign,
+  MessageCircle,
 } from 'lucide-react'
 import { loginBarberAction } from '@/app/actions/auth'
 
@@ -51,9 +53,33 @@ export default function LoginPage() {
         {/* Card Form */}
         <div className="card p-6 shadow-xl space-y-5 bg-surface/90 backdrop-blur-md">
           {error && (
-            <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/30 text-danger text-xs font-medium flex items-start gap-2 animate-shake">
-              <span className="w-1.5 h-1.5 rounded-full bg-danger flex-shrink-0 mt-1.5" />
-              <span>{error}</span>
+            <div className="space-y-3 animate-shake">
+              <div className="p-3.5 rounded-xl bg-danger/10 border border-danger/30 text-danger text-xs font-medium flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-danger flex-shrink-0 mt-1.5" />
+                <span>{error}</span>
+              </div>
+              {error.includes('suspenso') && (
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <a
+                    href={process.env.NEXT_PUBLIC_CAKTO_CHECKOUT_URL || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-accent hover:bg-accent/90 text-white font-bold text-xs transition-colors shadow-sm"
+                  >
+                    <DollarSign className="w-4 h-4" />
+                    Renovar Plano
+                  </a>
+                  <a
+                    href={`https://wa.me/${(process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || '5519996214343').replace(/\D/g, '')}?text=${encodeURIComponent('Olá, minha conta foi suspensa e gostaria de renovar.')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-sm"
+                  >
+                    <MessageCircle className="w-4 h-4 fill-current" />
+                    WhatsApp
+                  </a>
+                </div>
+              )}
             </div>
           )}
 

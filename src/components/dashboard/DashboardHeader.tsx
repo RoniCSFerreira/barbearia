@@ -275,16 +275,28 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
                       </div>
 
                       {waUrl && (
-                        <a
-                          href={waUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => setIsNotifOpen(false)}
-                          className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-sm"
-                        >
-                          <MessageCircle className="w-4 h-4 fill-current" />
-                          <span>Falar no WhatsApp (Renovar)</span>
-                        </a>
+                        <div className="flex flex-col gap-2 mt-2">
+                          <a
+                            href={process.env.NEXT_PUBLIC_CAKTO_CHECKOUT_URL || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setIsNotifOpen(false)}
+                            className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-accent hover:bg-accent/90 text-white font-bold text-xs transition-colors shadow-sm"
+                          >
+                            <DollarSign className="w-4 h-4" />
+                            <span>Renovar Assinatura Agora</span>
+                          </a>
+                          <a
+                            href={waUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setIsNotifOpen(false)}
+                            className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shadow-sm"
+                          >
+                            <MessageCircle className="w-4 h-4 fill-current" />
+                            <span>Falar no WhatsApp</span>
+                          </a>
+                        </div>
                       )}
                     </div>
                   ) : (

@@ -167,7 +167,7 @@ export async function loginBarberAction(formData: FormData): Promise<AuthActionR
 
   if (user.status === 'SUSPENDED') {
     return {
-      error: 'Seu acesso está temporariamente suspenso. Entre em contato pelo WhatsApp com o administrador.',
+      error: 'Seu acesso está temporariamente suspenso. Renove sua assinatura para voltar a acessar o painel.',
     }
   }
 
