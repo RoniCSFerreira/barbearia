@@ -27,8 +27,30 @@ export async function POST(request: Request) {
 
     console.log(`[Webhook Cakto] Recebido evento: ${event} para o email: ${clienteEmail}`);
 
+    const activeEvents = [
+      'payment.approved',
+      'purchase_approved',
+      'subscription.renewed',
+      'subscription_renewed',
+      'subscription_created',
+      'subscription_reactivated',
+      'subscription_recovered'
+    ];
+
+    const suspendedEvents = [
+      'subscription.canceled',
+      'subscription_canceled',
+      'subscription_paused',
+      'subscription_delayed',
+      'payment.refunded',
+      'purchase_refunded',
+      'payment.failed',
+      'purchase_failed',
+      'chargeback'
+    ];
+
     // Pagamento Aprovado ou Renovação -> Ativar Usuário
-    if (event === 'payment.approved' || event === 'subscription.renewed') {
+    if (activeEvents.includes(event)) {
       const expirationDate = new Date();
       expirationDate.setMonth(expirationDate.getMonth() + 1); // + 1 mês
 
@@ -42,22 +64,18 @@ export async function POST(request: Request) {
           trial_ends_at: expirationDate, // Atualiza a data de vencimento do painel
         },
       });
-      console.log(`[Webhook Cakto] Usuário ${clienteEmail} ativado.`);
+      console.log(`[Webhook Cakto] Usuário ${clienteEmail} ativado. Evento: ${event}`);
     }
 
     // Assinatura Cancelada, Inadimplente ou Estornada -> Suspender
-    if (
-      event === 'subscription.canceled' ||
-      event === 'payment.refunded' ||
-      event === 'payment.failed'
-    ) {
+    if (suspendedEvents.includes(event)) {
       await db.user.updateMany({
         where: { email: clienteEmail },
         data: {
           status: 'SUSPENDED',
         },
       });
-      console.log(`[Webhook Cakto] Usuário ${clienteEmail} suspenso.`);
+      console.log(`[Webhook Cakto] Usuário ${clienteEmail} suspenso. Evento: ${event}`);
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
