@@ -100,6 +100,15 @@ export default function NextAppointment({ initialAppointments, organizationSlug 
           Check-in
         </button>
       </div>
+      
+      {/* Encaixe Rápido Button ALWAYS VISIBLE */}
+      <div className="pt-2">
+        <NewAppointmentModal
+          buttonText="Encaixe Rápido"
+          organizationSlug={organizationSlug}
+          buttonClassName="w-full flex items-center justify-center gap-1.5 text-xs text-accent bg-accent/10 border border-accent/25 hover:bg-accent/20 px-2.5 py-2 rounded-lg font-semibold transition-colors cursor-pointer"
+        />
+      </div>
     </div>
   )
 }
