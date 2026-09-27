@@ -51,20 +51,36 @@ export async function POST(request: Request) {
 
     // Pagamento Aprovado ou Renovação -> Ativar Usuário
     if (activeEvents.includes(event)) {
-      const expirationDate = new Date();
-      expirationDate.setMonth(expirationDate.getMonth() + 1); // + 1 mês
-
-      await db.user.updateMany({
+      const user = await db.user.findUnique({
         where: { email: clienteEmail },
-        data: {
-          status: 'ACTIVE',
-          subscription_id: String(subscriptionId),
-          subscription_provider: 'CAKTO',
-          subscription_ends_at: expirationDate,
-          trial_ends_at: expirationDate, // Atualiza a data de vencimento do painel
-        },
       });
-      console.log(`[Webhook Cakto] Usuário ${clienteEmail} ativado. Evento: ${event}`);
+
+      if (user) {
+        const now = new Date();
+        const currentExpiration = user.trial_ends_at || now;
+        
+        let newExpiration = new Date();
+        // Se pagou adiantado (vencimento ainda está no futuro), soma a partir do vencimento atual
+        if (currentExpiration > now) {
+          newExpiration = new Date(currentExpiration);
+          newExpiration.setMonth(newExpiration.getMonth() + 1);
+        } else {
+          // Se pagou atrasado (já venceu), soma 1 mês a partir de hoje
+          newExpiration.setMonth(newExpiration.getMonth() + 1);
+        }
+
+        await db.user.update({
+          where: { email: clienteEmail },
+          data: {
+            status: 'ACTIVE',
+            subscription_id: String(subscriptionId),
+            subscription_provider: 'CAKTO',
+            subscription_ends_at: newExpiration,
+            trial_ends_at: newExpiration, 
+          },
+        });
+        console.log(`[Webhook Cakto] Usuário ${clienteEmail} ativado. Novo vencimento: ${newExpiration.toISOString()}`);
+      }
     }
 
     // Assinatura Cancelada, Inadimplente ou Estornada -> Suspender
